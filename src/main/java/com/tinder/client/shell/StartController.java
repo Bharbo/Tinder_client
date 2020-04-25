@@ -79,12 +79,12 @@ public class StartController {
     public Availability checkAvailability() {
         return statusOfClient.isStart()
                 ? Availability.available()
-                : Availability.unavailable("вы не находитесь въ «Главномъ управленіи»");
+                : Availability.unavailable("вы не находитесь в стартовое меню");
     }
 
     public Availability checkNotInMain() {
         return !statusOfClient.isStart()
                 ? Availability.available()
-                : Availability.unavailable("вы уже находитесь въ «Главномъ управленіи»");
+                : Availability.unavailable("вы уже находитесь в стартовое меню");
     }
 }

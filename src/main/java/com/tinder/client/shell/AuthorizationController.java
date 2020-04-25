@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.Availability;
 import org.springframework.shell.standard.*;
 
+import java.net.URISyntaxException;
+
 
 @ShellComponent
 public class AuthorizationController {
@@ -55,7 +57,7 @@ public class AuthorizationController {
 
     @ShellMethod(key = {"удалить"}, value = "Удаление профиля")
     @ShellMethodAvailability("checkAvailability")
-    public String delProfile() {
+    public String delProfile() throws URISyntaxException {
         Response response = sendRequestReceiveResponse.deleteProfile();
 
         if (!response.isStatus()) {

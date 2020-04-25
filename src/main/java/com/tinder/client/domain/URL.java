@@ -1,10 +1,14 @@
 package com.tinder.client.domain;
 
+import org.apache.commons.httpclient.URIException;
+import org.springframework.stereotype.Component;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import org.springframework.web.util.UriBuilderFactory;
-
+//import org.apache.commons.httpclient.util.URIUtil;
 import java.net.URI;
+import java.net.URISyntaxException;
 
+@Component
 public class URL {
 
     UriBuilderFactory factory = new DefaultUriBuilderFactory();
@@ -23,7 +27,7 @@ public class URL {
                 .build();
     }
 
-    public URI next() {
+        public URI next() {
         return factory.uriString("http://localhost:8080")
                 .fragment("users")
                 .fragment("next")
