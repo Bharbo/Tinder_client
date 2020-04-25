@@ -1,0 +1,10 @@
+11.влево - login/dislike (88.users/next - следующая)
+22.вправо - login/like (88users/next - следующая)
+
+1111 - 3.анкета (    shell> 44.войти - /login
+                    shell> 55.новая - /register
+                    shell> 66.изменить - /login/edit
+                    shell> 77.удалить - /login/edit/delete
+                    )
+
+99.любимцы - users/like/matching (1010.выбор любимца - users/like/matching/{id})
