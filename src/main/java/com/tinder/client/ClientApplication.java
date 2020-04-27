@@ -9,4 +9,16 @@ public class ClientApplication {
     public static void main(String[] args) {
         SpringApplication.run(ClientApplication.class, args);
     }
+
+//    @Component
+//    public class Initializing {
+//
+//        @Autowired
+//        SendRequestReceiveResponse sendRequestReceiveResponse;
+//
+//        @PostConstruct
+//        public void initial() {
+//            System.out.println(sendRequestReceiveResponse.getNextProfile().toString());
+//        }
+//    }
 }

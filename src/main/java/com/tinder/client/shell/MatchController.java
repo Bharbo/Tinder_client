@@ -18,17 +18,22 @@ public class MatchController {
         this.statusOfClient = statusOfClient;
     }
 
+
     @ShellMethod(key = {"любимцы"}, value = "Показать людей ответивших взаимностью")
     @ShellMethodAvailability("checkAvailability")
     public String showAllMatches() {
-        return sendRequestReceiveResponse.showAllMatch().getAddition().toString() + "\n";
+        return sendRequestReceiveResponse.AllMyMatch().getAddition().toString() + "\n";
     }
 
-    @ShellMethod(key = {"выбор профиля"}, value = "Показать информацию о пользователе")
+
+    @ShellMethod(key = {"выбор профиля"}, value = "Показать анкету ответившего взаимностью юзера")
     @ShellMethodAvailability("checkAvailability")
     public String showOne(@ShellOption int number) {
-        return sendRequestReceiveResponse.getOneMatch(number).getAddition().toString() + "\n";
+        return sendRequestReceiveResponse.getOneMatch(number).getAddition() + "\n";
     }
+
+
+
 
     public Availability checkAvailability() {
         return statusOfClient.isMatch()

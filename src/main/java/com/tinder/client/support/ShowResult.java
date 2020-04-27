@@ -1,15 +1,16 @@
 package com.tinder.client.support;
 
+import com.tinder.client.domain.User;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ShowResult {
-    public String createMatchesList(Object[] array) {
+    public String createMatchesList(User[] array) {
         StringBuilder builder = new StringBuilder("Список любимцев:\n");
         if (array.length == 0)
-            return builder.toString() + "Любимцевъ нетъ :'(";
+            return builder.toString() + "Любимцев нетъ :'(";
         for (int i = 0; i < array.length; i++) {
-            builder.append(i + 1).append(") ").append(array[i]).append("\n");
+            builder.append(i + 1).append(") ").append(array[i].getUsername()).append("\n");
         }
         return builder.toString();
     }

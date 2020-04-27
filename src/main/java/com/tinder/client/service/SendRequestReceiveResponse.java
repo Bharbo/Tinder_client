@@ -1,42 +1,77 @@
 package com.tinder.client.service;
 
-import com.tinder.client.domain.Response;
-import com.tinder.client.domain.URL;
+import com.tinder.client.support.Response;
+import com.tinder.client.support.URL;
 import com.tinder.client.domain.User;
 import com.tinder.client.support.ShowResult;
 import lombok.var;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 
 @Component
 public class SendRequestReceiveResponse {
-    Set<User> allProfiles;
-    User currentUser;
-    Map<Integer, String> matches;
-    URL url;
+    int num;
     RestTemplate restTemplate;
     ShowResult showResult;
+    Logger logger = LoggerFactory.getLogger(SendRequestReceiveResponse.class);
 
     @Autowired
-    public SendRequestReceiveResponse(ShowResult showResult, RestTemplate restTemplate, URL url) {
-        allProfiles = null;
-        currentUser = null;
-        matches = null;
-        this.url = url;
+    public SendRequestReceiveResponse(ShowResult showResult, RestTemplate restTemplate) {
         this.showResult = showResult;
         this.restTemplate = restTemplate;
+        num = 0;
     }
 
+    public Response getNextProfile() {
+        Map<String, String> currentUser = getCurrentUserAsMap();
+        Response response;
+        if (currentUser == null) {
+            response = getNextNoAuth(num);
+            if (response.isStatus()) {
+                num++;
+                return response;
+            }
+        } else {
+            response = getNextAuth(currentUser.get("id"));
+        }
+        return response;
+    }
+
+    public Response getNextNoAuth(int num) {
+
+        URI uri = new URL().noAuthNext(num);
+        var requestEntity = RequestEntity.get(uri).build();
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(requestEntity, String.class);
+            return new Response(true, response.getBody());
+        } catch (RestClientException e) {
+            return new Response(false);
+        }
+    }
+
+    public Response getNextAuth(String id) {
+        URI uri = new URL().authNext();
+
+        RequestEntity<Long> request = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(Long.parseLong(id));
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(request, String.class);
+            return new Response(true, response.getBody());
+        } catch (RestClientException e) {
+            logger.debug(e.getMessage());
+        }
+        return new Response(false, "Подходящих профилей не найдено");
+    }
+
+    //Assert.notNull(ctor, "Constructor must not be null");
 
     public Response regNewUser(String username, String password, String gender, String profileMessage) {
 
@@ -47,7 +82,7 @@ public class SendRequestReceiveResponse {
         params.put("gender", gender);
         params.put("profileMessage", profileMessage);
 
-        URI uri = url.reg();
+        URI uri = new URL().reg();
         RequestEntity<Map<String, String>> request = RequestEntity.post(uri).body(params);
 
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
@@ -55,16 +90,9 @@ public class SendRequestReceiveResponse {
             serverResponse = new Response(true,
                     "Успехъ. Ваша анкета:\n" + params.get("username") + " " + params.get("profileMessage"));
             params.put("id", response.getBody());
-            saveProfile(params);
         }
         return serverResponse;
     }
-
-    public void saveProfile(Map<String, String> params) {
-        allProfiles.add(new User(Long.parseLong(params.get("id")), params.get("gender"),
-                params.get("username"), params.get("password"), params.get("profileMessage")));
-    }
-
 
     public Response logIn(String username, String password) {
         Response serverResponse = new Response(false, "Неудача, попробуйте снова");
@@ -72,16 +100,12 @@ public class SendRequestReceiveResponse {
         params.put("username", username);
         params.put("password", password);
 
-        URI uri = url.logIn();
+        URI uri = new URL().logIn();
         RequestEntity<Map<String, String>> request = RequestEntity.post(uri).body(params);
 
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
         if (response.getStatusCode() == HttpStatus.OK) {
             serverResponse = new Response(true, "Успехъ\n");
-            currentUser = allProfiles.stream()
-                    .filter(profile -> profile.getId().equals(Long.parseLong(Objects.requireNonNull(response.getBody()))))
-                    .findFirst()
-                    .orElse(null);
         }
         return serverResponse;
     }
@@ -91,11 +115,11 @@ public class SendRequestReceiveResponse {
 
         Response serverResponse = new Response(false, "Не удалось изменить описание профиля");
 
-        URI uri = url.edit();
+        URI uri = new URL().edit();
         RequestEntity<String> request = RequestEntity.put(uri).body(message);
 
-        ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.PUT, request, String.class);
-//        ResponseEntity<String> response = restTemplate.exchange(request, String.class);
+//        ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.PUT, request, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(request, String.class);
         if (response.getStatusCode() == HttpStatus.OK) {
             serverResponse = new Response(true, response.getBody());
         }
@@ -103,17 +127,9 @@ public class SendRequestReceiveResponse {
     }
 
 
-    public Response getNextProfile(){
-        URI uri = url.next();
-        RequestEntity<String> request = RequestEntity.post(uri).body("");
-        ResponseEntity<String> response = restTemplate.exchange(request, String.class);
-        return new Response(true, response.getBody());
-    }
-
-
     public Response like() {
 
-        URI uri = url.right();
+        URI uri = new URL().right();
         RequestEntity<String> request = RequestEntity.post(uri).body("");
 
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
@@ -126,7 +142,7 @@ public class SendRequestReceiveResponse {
 
     public Response dislike() {
 
-        URI uri = url.left();
+        URI uri = new URL().left();
         RequestEntity<String> request = RequestEntity.post(uri).body("");
 
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
@@ -138,62 +154,63 @@ public class SendRequestReceiveResponse {
     }
 
 
-    public Response showAllMatch() {
-
-//        if (currentUser != null) {
-            Map<String, String> requestParams = new HashMap<>();
-            requestParams.put("id", currentUser.getId().toString());////////////
-
-            URI uri = url.allMatch();
-            RequestEntity<Map<String, String>> request = RequestEntity.post(uri).body(requestParams);
-
-            ResponseEntity<Map<Integer, String>> response = restTemplate.exchange(request,
-                    new ParameterizedTypeReference<Map<Integer, String>>() {
-                    });
-
-            matches = response.getBody();
-
-            return response.getStatusCode() == HttpStatus.CREATED ?
-                    new Response(true, showResult.createMatchesList(matches.values().toArray())) :
-                    new Response(false, "Авторизуйтесь для получения списка любимцев");
-//        }
-    }
-
-    public Response getOneMatch(int number) {
-        if (number > matches.size() || number < 1)
-            return new Response(false, "Нет такого номера!");
-        String username = matches.get(number);
-        User user = Objects.requireNonNull(allProfiles.stream()///Objects.requireNonNull возможно противоречит .orElse(null)
-                .filter(profile -> profile.getUsername().equals(username))
-                .findFirst()
-                .orElse(null));///
-
-        URI uri = url.oneMatch(user.getId());
+    public Map<String, String> getCurrentUserAsMap() {
+        int num = 1;
+        URI uri = new URL().currentUser(num);
         var request = RequestEntity.get(uri).build();
 
         ResponseEntity<Map<String, String>> response = restTemplate.exchange(request,
                 new ParameterizedTypeReference<Map<String, String>>() {
                 });
+//                ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.PUT, request, String.class);
+        return response.getBody();
+    }
 
-        return response.getStatusCode() == HttpStatus.OK ?
-                new Response(true, response.getBody()) :
-                new Response(false, "Авторизуйтесь для получения списка любимцев");
+
+    public Response AllMyMatch() {
+        Map<Integer, User> allMatch = AllMyMatchAsMap();
+        return allMatch.isEmpty() ?
+                new Response(false, "Пользователь не авторизован || матчи не найдены") :
+                new Response(true, showResult.createMatchesList((User[]) allMatch.values().toArray()));
+    }
+
+    public Map<Integer, User> AllMyMatchAsMap() {
+
+        Map<String, String> currentUser = getCurrentUserAsMap();
+        if (currentUser == null) {
+            return null;
+        }
+
+        URI uri = new URL().allMyMatch(Long.parseLong(currentUser.get("id")));
+        var request = RequestEntity.get(uri).build();
+
+        ResponseEntity<Map<Integer, User>> restResponse = restTemplate.exchange(request,
+                new ParameterizedTypeReference<Map<Integer, User>>() {
+                });
+        return restResponse.getBody();//возвращается null или MAP (номер юзера, User)
+    }
+
+    public Response getOneMatch(int number) {
+        Map<Integer, User> myMatch = AllMyMatchAsMap();
+        if (number > myMatch.size() || number < 1) {
+            return new Response(false, "Нет такого номера");
+        }
+        User matchUser = myMatch.get(number);
+
+        return new Response(true, matchUser.getUsername() + " " + matchUser.getDescription());
     }
 
     public Response deleteProfile() {
 
-        URI uri = url.delete();
-        RequestEntity<Long> request = RequestEntity.post(uri).body(currentUser.getId());
+        Map<String, String> currentUser = getCurrentUserAsMap();
+        URI uri = new URL().delete();
+        RequestEntity<Long> request = RequestEntity.post(uri).body(Long.parseLong(currentUser.get("id")));
 
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
 
         if (response.getStatusCode() == HttpStatus.OK) {
-            allProfiles.remove(currentUser);
-            matches.clear();
-            currentUser = null;
             return new Response(true, response.getBody());
-        } else {
-            return new Response(false, response.getBody());
         }
+        return new Response(false, response.getBody());
     }
 }

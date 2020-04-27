@@ -18,19 +18,19 @@ public class StatusOfClient {
         auth = false;
     }
 
-    public void goStart() {
+    public void startPanel() {
         start = true;
         match = false;
         auth = false;
     }
 
-    public void goMatch() {
+    public void matchPanel() {
         start = false;
         match = true;
         auth = false;
     }
 
-    public void goAuth() {
+    public void authPanel() {
         start = false;
         match = false;
         auth = true;

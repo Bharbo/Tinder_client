@@ -1,14 +1,11 @@
 package com.tinder.client.shell;
 
-import com.tinder.client.domain.Response;
+import com.tinder.client.support.Response;
 import com.tinder.client.service.SendRequestReceiveResponse;
 import com.tinder.client.service.StatusOfClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.Availability;
 import org.springframework.shell.standard.*;
-
-import java.net.URISyntaxException;
-
 
 @ShellComponent
 public class AuthorizationController {
@@ -30,7 +27,7 @@ public class AuthorizationController {
             return "Вы \"сударь\" иль \"сударыня\"? Как вас величать? Ваш секретный шифръ? Какіе вы и что вы ищите?";
         Response response = sendRequestReceiveResponse.regNewUser(username, password, gender, description);
         if (response.isStatus()) {
-            statusOfClient.goStart();
+            statusOfClient.startPanel();
         }
         return response.getAddition().toString();
     }
@@ -43,7 +40,7 @@ public class AuthorizationController {
             return "Как вас величать? Ваш секретный шифръ?";
         Response response = sendRequestReceiveResponse.logIn(username, password);
         if (response.isStatus()) {
-            statusOfClient.goStart();
+            statusOfClient.startPanel();
         }
         return response.getAddition().toString();
     }
@@ -57,7 +54,7 @@ public class AuthorizationController {
 
     @ShellMethod(key = {"удалить"}, value = "Удаление профиля")
     @ShellMethodAvailability("checkAvailability")
-    public String delProfile() throws URISyntaxException {
+    public String delProfile() {
         Response response = sendRequestReceiveResponse.deleteProfile();
 
         if (!response.isStatus()) {
