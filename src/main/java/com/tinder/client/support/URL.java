@@ -44,7 +44,7 @@ public class URL {
         return URI.create(StrURL.DELETE.label);
     }
 
-    public URI currentUser(int num) {
-        return URI.create(StrURL.CURRENTUSER.label + "?num=" + num);
+    public URI currentUser(/*int num*/) {
+        return URI.create(StrURL.CURRENTUSER.label/* + "?num=" + num*/);
     }
 }

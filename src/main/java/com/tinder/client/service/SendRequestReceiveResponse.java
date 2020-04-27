@@ -13,6 +13,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
 import java.net.URI;
 import java.util.*;
 
@@ -30,8 +31,30 @@ public class SendRequestReceiveResponse {
         num = 0;
     }
 
+
+    public User getCurrentUserAsMap() {
+        Integer num = 1;
+        URI uri = new URL().currentUser(/*num*/);// http://localhost:8080/login/currentuser
+        RequestEntity<Integer> request = RequestEntity
+                .post(uri)
+//                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(num);
+//        var request = RequestEntity.get(uri).build();
+
+
+        ResponseEntity<User> response = restTemplate.exchange(uri, HttpMethod.POST, request, User.class);
+//        ResponseEntity<User> response = restTemplate.exchange(request, User.class);
+
+        //        ResponseEntity<Map<String, String>> response = restTemplate.exchange(request,
+//                new ParameterizedTypeReference<Map<String, String>>() {});
+
+        return response.getBody();
+    }
+
+
     public Response getNextProfile() {
-        Map<String, String> currentUser = getCurrentUserAsMap();
+        User currentUser = getCurrentUserAsMap();
         Response response;
         if (currentUser == null) {
             response = getNextNoAuth(num);
@@ -40,7 +63,7 @@ public class SendRequestReceiveResponse {
                 return response;
             }
         } else {
-            response = getNextAuth(currentUser.get("id"));
+            response = getNextAuth(currentUser.getId());
         }
         return response;
     }
@@ -57,10 +80,10 @@ public class SendRequestReceiveResponse {
         }
     }
 
-    public Response getNextAuth(String id) {
+    public Response getNextAuth(Long id) {
         URI uri = new URL().authNext();
 
-        RequestEntity<Long> request = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(Long.parseLong(id));
+        RequestEntity<Long> request = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(id);
 
         try {
             ResponseEntity<String> response = restTemplate.exchange(request, String.class);
@@ -154,19 +177,6 @@ public class SendRequestReceiveResponse {
     }
 
 
-    public Map<String, String> getCurrentUserAsMap() {
-        int num = 1;
-        URI uri = new URL().currentUser(num);
-        var request = RequestEntity.get(uri).build();
-
-        ResponseEntity<Map<String, String>> response = restTemplate.exchange(request,
-                new ParameterizedTypeReference<Map<String, String>>() {
-                });
-//                ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.PUT, request, String.class);
-        return response.getBody();
-    }
-
-
     public Response AllMyMatch() {
         Map<Integer, User> allMatch = AllMyMatchAsMap();
         return allMatch.isEmpty() ?
@@ -176,12 +186,12 @@ public class SendRequestReceiveResponse {
 
     public Map<Integer, User> AllMyMatchAsMap() {
 
-        Map<String, String> currentUser = getCurrentUserAsMap();
+        User currentUser = getCurrentUserAsMap();
         if (currentUser == null) {
             return null;
         }
 
-        URI uri = new URL().allMyMatch(Long.parseLong(currentUser.get("id")));
+        URI uri = new URL().allMyMatch(currentUser.getId());
         var request = RequestEntity.get(uri).build();
 
         ResponseEntity<Map<Integer, User>> restResponse = restTemplate.exchange(request,
@@ -202,9 +212,9 @@ public class SendRequestReceiveResponse {
 
     public Response deleteProfile() {
 
-        Map<String, String> currentUser = getCurrentUserAsMap();
+        User currentUser = getCurrentUserAsMap();
         URI uri = new URL().delete();
-        RequestEntity<Long> request = RequestEntity.post(uri).body(Long.parseLong(currentUser.get("id")));
+        RequestEntity<Long> request = RequestEntity.post(uri).body(currentUser.getId());
 
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
 
