@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 @Getter
 //убрать методы и менять статусы с помощью сеттеров
 
-@Component
+//@Component
 public class StatusOfClient {
     private boolean start;
     private boolean match;

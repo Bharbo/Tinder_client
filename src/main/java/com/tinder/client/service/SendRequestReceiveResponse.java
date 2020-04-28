@@ -7,24 +7,21 @@ import com.tinder.client.support.ShowResult;
 import lombok.var;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.*;
 
-@Component
 public class SendRequestReceiveResponse {
-    int num;
+    Integer num;
     RestTemplate restTemplate;
     ShowResult showResult;
     Logger logger = LoggerFactory.getLogger(SendRequestReceiveResponse.class);
 
-    @Autowired
+
     public SendRequestReceiveResponse(ShowResult showResult, RestTemplate restTemplate) {
         this.showResult = showResult;
         this.restTemplate = restTemplate;
@@ -32,29 +29,20 @@ public class SendRequestReceiveResponse {
     }
 
 
-    public User getCurrentUserAsMap() {
-        Integer num = 1;
-        URI uri = new URL().currentUser(/*num*/);// http://localhost:8080/login/currentuser
-        RequestEntity<Integer> request = RequestEntity
-                .post(uri)
-//                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(num);
-//        var request = RequestEntity.get(uri).build();
+    public Map<String, String> getCurrentUserAsMap() {
 
+        URI uri = new URL().currentUser(num);// http://localhost:8080/login/currentuser?num=0
+        var request = RequestEntity.get(uri).build();
 
-        ResponseEntity<User> response = restTemplate.exchange(uri, HttpMethod.POST, request, User.class);
-//        ResponseEntity<User> response = restTemplate.exchange(request, User.class);
-
-        //        ResponseEntity<Map<String, String>> response = restTemplate.exchange(request,
-//                new ParameterizedTypeReference<Map<String, String>>() {});
+        ResponseEntity<Map<String, String>> response = restTemplate.exchange
+                (request, new ParameterizedTypeReference<Map<String, String>>() {});
 
         return response.getBody();
     }
 
 
     public Response getNextProfile() {
-        User currentUser = getCurrentUserAsMap();
+        Map<String, String> currentUser = getCurrentUserAsMap();
         Response response;
         if (currentUser == null) {
             response = getNextNoAuth(num);
@@ -63,7 +51,7 @@ public class SendRequestReceiveResponse {
                 return response;
             }
         } else {
-            response = getNextAuth(currentUser.getId());
+            response = getNextAuth(Long.parseLong(currentUser.get("id")));
         }
         return response;
     }
@@ -186,12 +174,13 @@ public class SendRequestReceiveResponse {
 
     public Map<Integer, User> AllMyMatchAsMap() {
 
-        User currentUser = getCurrentUserAsMap();
+        Map<String, String> currentUser = getCurrentUserAsMap();
         if (currentUser == null) {
             return null;
         }
 
-        URI uri = new URL().allMyMatch(currentUser.getId());
+        URI uri = new URL().allMyMatch(Long.parseLong(currentUser.get("id")));
+//        URI uri = new URL().allMyMatch(Long.parseLong(currentUser.get("id")));
         var request = RequestEntity.get(uri).build();
 
         ResponseEntity<Map<Integer, User>> restResponse = restTemplate.exchange(request,
@@ -212,9 +201,9 @@ public class SendRequestReceiveResponse {
 
     public Response deleteProfile() {
 
-        User currentUser = getCurrentUserAsMap();
+        Map<String, String> currentUser = getCurrentUserAsMap();
         URI uri = new URL().delete();
-        RequestEntity<Long> request = RequestEntity.post(uri).body(currentUser.getId());
+        RequestEntity<Long> request = RequestEntity.post(uri).body(Long.parseLong(currentUser.get("id")));
 
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
 
@@ -224,3 +213,65 @@ public class SendRequestReceiveResponse {
         return new Response(false, response.getBody());
     }
 }
+
+
+
+
+
+
+
+
+
+//        public Map<String, String> getCurrentUserAsMap() {
+//        Integer num = 1;
+//        URI uri = new URL().currentUser(/*num*/);// http://localhost:8080/login/currentuser
+////        HttpHeaders headers = new HttpHeaders();
+////        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+////        headers.setContentType(MediaType.APPLICATION_JSON);
+////        headers.set("Authorization", num+"");
+////        HttpEntity<Integer> request = new HttpEntity<>(num, headers);
+//        var request = RequestEntity
+//                .post(uri)
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .body(num);
+////        var request = RequestEntity.get(uri).build();
+//
+//
+//        var response = restTemplate.exchange(uri, HttpMethod.POST, request, new ParameterizedTypeReference<Map<String, String>>() {});
+////        ResponseEntity<User> response = restTemplate.exchange(request, User.class);
+//
+//        //        ResponseEntity<Map<String, String>> response = restTemplate.exchange(request,
+////                new ParameterizedTypeReference<Map<String, String>>() {});
+//
+//        return response.getBody();
+//    }
+//
+//
+
+
+//        public User getCurrentUserAsMap() {
+//        Integer num = 1;
+//        URI uri = new URL().currentUser(/*num*/);// http://localhost:8080/login/currentuser
+////        HttpHeaders headers = new HttpHeaders();
+////        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+////        headers.setContentType(MediaType.APPLICATION_JSON);
+////        headers.set("Authorization", num+"");
+////        HttpEntity<Integer> request = new HttpEntity<>(num, headers);
+//        var request = RequestEntity
+//                .post(uri)
+////                .accept(MediaType.APPLICATION_JSON)
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .body(num);
+////        var request = RequestEntity.get(uri).build();
+//
+//
+//        var response = restTemplate.exchange(uri, HttpMethod.POST, request, User.class);
+////        ResponseEntity<User> response = restTemplate.exchange(request, User.class);
+//
+//        //        ResponseEntity<Map<String, String>> response = restTemplate.exchange(request,
+////                new ParameterizedTypeReference<Map<String, String>>() {});
+//
+//        return response.getBody();
+//    }
+//
+//

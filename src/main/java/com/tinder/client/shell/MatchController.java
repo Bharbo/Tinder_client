@@ -12,7 +12,7 @@ public class MatchController {
     StatusOfClient statusOfClient;
     SendRequestReceiveResponse sendRequestReceiveResponse;
 
-    @Autowired
+//    @Autowired
     public MatchController(SendRequestReceiveResponse sendRequestReceiveResponse, StatusOfClient statusOfClient) {
         this.sendRequestReceiveResponse = sendRequestReceiveResponse;
         this.statusOfClient = statusOfClient;

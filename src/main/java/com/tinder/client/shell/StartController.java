@@ -15,14 +15,11 @@ public class StartController {
     StatusOfClient statusOfClient;
     SendRequestReceiveResponse sendRequestReceiveResponse;
 
-    @Autowired
+
     public StartController(SendRequestReceiveResponse sendRequestReceiveResponse, StatusOfClient statusOfClient) {
         this.sendRequestReceiveResponse = sendRequestReceiveResponse;
         this.statusOfClient = statusOfClient;
-        initial();
     }
-
-
 
 
     @PostConstruct
@@ -36,9 +33,6 @@ public class StartController {
             System.out.println(response.getAddition().toString() + "\n");
         }
     }
-
-//    public RequestEntity(@Nullable T body, @Nullable MultiValueMap<String, String> headers, @Nullable HttpMethod method, URI url, @Nullable Type type) {
-//        super(body, headers);
 
 
     @ShellMethod(key = {"влево"}, value = "Свайп влево для проявления антипатии")

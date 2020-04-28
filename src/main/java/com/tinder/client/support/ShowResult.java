@@ -3,7 +3,7 @@ package com.tinder.client.support;
 import com.tinder.client.domain.User;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public class ShowResult {
     public String createMatchesList(User[] array) {
         StringBuilder builder = new StringBuilder("Список любимцев:\n");

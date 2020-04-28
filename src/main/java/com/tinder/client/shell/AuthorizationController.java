@@ -12,7 +12,7 @@ public class AuthorizationController {
     StatusOfClient statusOfClient;
     SendRequestReceiveResponse sendRequestReceiveResponse;
 
-    @Autowired
+//    @Autowired
     public AuthorizationController(SendRequestReceiveResponse sendRequestReceiveResponse, StatusOfClient statusOfClient) {
         this.sendRequestReceiveResponse = sendRequestReceiveResponse;
         this.statusOfClient = statusOfClient;
