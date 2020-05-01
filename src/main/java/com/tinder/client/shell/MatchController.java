@@ -19,14 +19,14 @@ public class MatchController {
     }
 
 
-    @ShellMethod(key = {"любимцы"}, value = "Показать людей ответивших взаимностью")
+    @ShellMethod(key = {"список"}, value = "Показать людей ответивших взаимностью")
     @ShellMethodAvailability("checkAvailability")
     public String showAllMatches() {
         return sendRequestReceiveResponse.AllMyMatch().getAddition().toString() + "\n";
     }
 
 
-    @ShellMethod(key = {"выбор профиля"}, value = "Показать анкету ответившего взаимностью юзера")
+    @ShellMethod(key = {"№"}, value = "Показать анкету ответившего взаимностью юзера")
     @ShellMethodAvailability("checkAvailability")
     public String showOne(@ShellOption int number) {
         return sendRequestReceiveResponse.getOneMatch(number).getAddition() + "\n";

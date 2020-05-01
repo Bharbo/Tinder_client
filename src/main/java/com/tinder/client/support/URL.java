@@ -47,26 +47,16 @@ public class URL {
     public URI currentUser(Integer num) {
         return URI.create(StrURL.CURRENTUSER.label + "?num=" + num);
     }
+
+    public URI breakLoggedUser() {
+        return URI.create(StrURL.BREAKLOGGEDUSER.label);
+    }
+
+    public URI logOut() {
+        return URI.create(StrURL.LOGOUT.label);
+    }
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //    public URI currentUser(/*int num*/) {

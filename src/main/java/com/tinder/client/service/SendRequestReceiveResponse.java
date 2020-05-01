@@ -31,11 +31,12 @@ public class SendRequestReceiveResponse {
 
     public Map<String, String> getCurrentUserAsMap() {
 
-        URI uri = new URL().currentUser(num);// http://localhost:8080/login/currentuser?num=0
+        URI uri = new URL().currentUser(1);// http://localhost:8080/login/currentuser?num=0
         var request = RequestEntity.get(uri).build();
 
         ResponseEntity<Map<String, String>> response = restTemplate.exchange
-                (request, new ParameterizedTypeReference<Map<String, String>>() {});
+                (request, new ParameterizedTypeReference<Map<String, String>>() {
+                });
 
         return response.getBody();
     }
@@ -60,38 +61,39 @@ public class SendRequestReceiveResponse {
 
         URI uri = new URL().noAuthNext(num);
         var requestEntity = RequestEntity.get(uri).build();
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(requestEntity, String.class);
-            return new Response(true, response.getBody());
-        } catch (RestClientException e) {
-            return new Response(false);
-        }
+//        try {
+        ResponseEntity<Map<String, String>> response = restTemplate
+                .exchange(requestEntity, new ParameterizedTypeReference<Map<String, String>>() {});
+        return new Response(true, response.getBody());
+//        } catch (RestClientException e) {
+//            return new Response(false);
+//        }
     }
 
     public Response getNextAuth(Long id) {
         URI uri = new URL().authNext();
 
-        RequestEntity<Long> request = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(id);
+        RequestEntity<Long> requestEntity = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(id);
 
         try {
-            ResponseEntity<String> response = restTemplate.exchange(request, String.class);
-            return new Response(true, response.getBody());
+            ResponseEntity<Map<String, String>> responseNext = restTemplate
+                    .exchange(requestEntity, new ParameterizedTypeReference<Map<String, String>>() {});
+//            System.out.println(responseNext);
+            return new Response(true, responseNext.getBody());
         } catch (RestClientException e) {
             logger.debug(e.getMessage());
         }
         return new Response(false, "Подходящих профилей не найдено");
     }
 
-    //Assert.notNull(ctor, "Constructor must not be null");
-
-    public Response regNewUser(String username, String password, String gender, String profileMessage) {
+    public Response regNewUser(String username, String password, String gender, String description) {
 
         Response serverResponse = new Response(false, "Не удалось создать учетную запись.");
         Map<String, String> params = new HashMap<>();
         params.put("username", username);
         params.put("password", password);
         params.put("gender", gender);
-        params.put("profileMessage", profileMessage);
+        params.put("description", description);
 
         URI uri = new URL().reg();
         RequestEntity<Map<String, String>> request = RequestEntity.post(uri).body(params);
@@ -99,14 +101,12 @@ public class SendRequestReceiveResponse {
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
         if (response.getStatusCode() == HttpStatus.CREATED) {
             serverResponse = new Response(true,
-                    "Успехъ. Ваша анкета:\n" + params.get("username") + " " + params.get("profileMessage"));
-            params.put("id", response.getBody());
+                    "Успехъ. Ваша анкета:\n" + params.get("username") + " " + params.get("description"));
         }
         return serverResponse;
     }
 
     public Response logIn(String username, String password) {
-        Response serverResponse = new Response(false, "Неудача, попробуйте снова");
         Map<String, String> params = new HashMap<>();
         params.put("username", username);
         params.put("password", password);
@@ -115,33 +115,36 @@ public class SendRequestReceiveResponse {
         RequestEntity<Map<String, String>> request = RequestEntity.post(uri).body(params);
 
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
-        if (response.getStatusCode() == HttpStatus.OK) {
-            serverResponse = new Response(true, "Успехъ\n");
-        }
-        return serverResponse;
+
+        return response.getStatusCode() == HttpStatus.OK ?
+                new Response(true, "|| Успехъ ||\n") :
+                new Response(false, response.getBody());
     }
 
 
     public Response changeDescription(String message) {
 
-        Response serverResponse = new Response(false, "Не удалось изменить описание профиля");
+//        Response serverResponse = new Response(false, response.getBody());
 
         URI uri = new URL().edit();
-        RequestEntity<String> request = RequestEntity.put(uri).body(message);
+        RequestEntity<String> request = RequestEntity.put(uri).contentType(MediaType.APPLICATION_JSON).body(message);
 
-//        ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.PUT, request, String.class);
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
-        if (response.getStatusCode() == HttpStatus.OK) {
-            serverResponse = new Response(true, response.getBody());
-        }
-        return serverResponse;
+
+        return response.getStatusCode() == HttpStatus.OK ?
+                new Response(true, response.getBody()) :
+                new Response(false, response.getBody());
+//        if (response.getStatusCode() == HttpStatus.OK) {
+//            serverResponse = new Response(true, response.getBody());
+//        }
+//        return serverResponse;
     }
 
 
-    public Response like() {
+    public Response like(Long id) {
 
         URI uri = new URL().right();
-        RequestEntity<String> request = RequestEntity.post(uri).body("");
+        RequestEntity<Long> request = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(id);
 
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
 
@@ -151,10 +154,10 @@ public class SendRequestReceiveResponse {
     }
 
 
-    public Response dislike() {
+    public Response dislike(Long id) {
 
         URI uri = new URL().left();
-        RequestEntity<String> request = RequestEntity.post(uri).body("");
+        RequestEntity<Long> request = RequestEntity.post(uri).contentType(MediaType.APPLICATION_JSON).body(id);
 
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
 
@@ -166,112 +169,125 @@ public class SendRequestReceiveResponse {
 
 
     public Response AllMyMatch() {
-        Map<Integer, User> allMatch = AllMyMatchAsMap();
-        return allMatch.isEmpty() ?
-                new Response(false, "Пользователь не авторизован || матчи не найдены") :
-                new Response(true, showResult.createMatchesList((User[]) allMatch.values().toArray()));
-    }
-
-    public Map<Integer, User> AllMyMatchAsMap() {
-
         Map<String, String> currentUser = getCurrentUserAsMap();
         if (currentUser == null) {
-            return null;
+            return new Response(false, "Пользователь не авторизован");
         }
+        Iterable<User> allMatch = AllMyMatchIter(currentUser);
+        List<User> userList = likeMatchUsersAsList(allMatch);
+        return userList.isEmpty() ?
+                new Response(false, "матчи не найдены") :
+                new Response(true, showResult.createMatchesList(userList));
+    }
+
+//        public Response AllMyMatch() {
+//        Map<Integer, User> allMatch = AllMyMatchAsMap();
+//        return allMatch.isEmpty() ?
+//                new Response(false, "Пользователь не авторизован || матчи не найдены") :
+//                new Response(true, showResult.createMatchesList(allMatch.values()));
+//    }
+//
+
+
+    public Iterable<User> AllMyMatchIter(Map<String, String> currentUser) {
 
         URI uri = new URL().allMyMatch(Long.parseLong(currentUser.get("id")));
-//        URI uri = new URL().allMyMatch(Long.parseLong(currentUser.get("id")));
         var request = RequestEntity.get(uri).build();
 
-        ResponseEntity<Map<Integer, User>> restResponse = restTemplate.exchange(request,
-                new ParameterizedTypeReference<Map<Integer, User>>() {
-                });
+        ResponseEntity<Iterable<User>> restResponse = restTemplate.exchange(request,
+                new ParameterizedTypeReference<Iterable<User>>() {});
         return restResponse.getBody();//возвращается null или MAP (номер юзера, User)
     }
 
+//        public Map<Integer, User> AllMyMatchAsMap() {
+//
+//        Map<String, String> currentUser = getCurrentUserAsMap();
+//        if (currentUser == null) {
+//            return null;
+//        }
+//
+//        URI uri = new URL().allMyMatch(Long.parseLong(currentUser.get("id")));
+//        var request = RequestEntity.get(uri).build();
+//
+//        ResponseEntity<Map<Integer, User>> restResponse = restTemplate.exchange(request,
+//                new ParameterizedTypeReference<Map<Integer, User>>() {
+//                });
+//        return restResponse.getBody();//возвращается null или MAP (номер юзера, User)
+//    }
+//
+//
+
+
     public Response getOneMatch(int number) {
-        Map<Integer, User> myMatch = AllMyMatchAsMap();
-        if (number > myMatch.size() || number < 1) {
+        Map<String, String> currentUser = getCurrentUserAsMap();
+        if (currentUser == null) {
+            return new Response(false, "Пользователь не авторизован");
+        }
+        Iterable<User> myMatch = AllMyMatchIter(currentUser);
+        List<User> userList = likeMatchUsersAsList(myMatch);
+        if (number > userList.size() || number < 1) {
             return new Response(false, "Нет такого номера");
         }
-        User matchUser = myMatch.get(number);
+        User matchUser = userList.get(number - 1);
 
         return new Response(true, matchUser.getUsername() + " " + matchUser.getDescription());
     }
 
+        public List<User> likeMatchUsersAsList(Iterable<User> likeMatchUsers) {
+        int i = 1;
+            List<User> likedUsersList = new LinkedList<>();
+
+            likeMatchUsers.forEach(likedUsersList::add);
+//        likeMatchUsers.forEach(user -> likedUsersMap.put(i + 1, user));
+        return likedUsersList;
+    }
+
+
+//        public Response getOneMatch(int number) {
+//        Map<Integer, User> myMatch = AllMyMatchAsMap();
+//        if (number > myMatch.size() || number < 1) {
+//            return new Response(false, "Нет такого номера");
+//        }
+//        User matchUser = myMatch.get(number);
+//
+//        return new Response(true, matchUser.getUsername() + " " + matchUser.getDescription());
+//    }
+//
+//
+
     public Response deleteProfile() {
 
         Map<String, String> currentUser = getCurrentUserAsMap();
+        if (currentUser == null) {
+            return new Response(false, "Пользователь не авторизован");
+        }
         URI uri = new URL().delete();
         RequestEntity<Long> request = RequestEntity.post(uri).body(Long.parseLong(currentUser.get("id")));
 
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
 
-        if (response.getStatusCode() == HttpStatus.OK) {
-            return new Response(true, response.getBody());
+        return response.getBody() != null ?
+                new Response(true, response.getBody()) :
+                new Response(false, response.getBody());
+    }
+
+
+    public void breakLoggedUser() {
+        URI uri = new URL().breakLoggedUser();
+        RequestEntity<String> request = RequestEntity.post(uri).body(" ");
+        ResponseEntity<String> response = restTemplate.exchange(request, String.class);
+        System.out.println(response.getBody());
+    }
+
+    public Response logOut() {
+        Map<String, String> currentUser = getCurrentUserAsMap();
+        if (currentUser == null) {
+            return new Response(false, "Пользователь не авторизован");
         }
-        return new Response(false, response.getBody());
+        URI uri = new URL().logOut();
+        RequestEntity<String> request = RequestEntity.post(uri).body(" ");
+        ResponseEntity<String> response = restTemplate.exchange(request, String.class);
+        return new Response(true, response.getBody());
     }
 }
 
-
-
-
-
-
-
-
-
-//        public Map<String, String> getCurrentUserAsMap() {
-//        Integer num = 1;
-//        URI uri = new URL().currentUser(/*num*/);// http://localhost:8080/login/currentuser
-////        HttpHeaders headers = new HttpHeaders();
-////        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-////        headers.setContentType(MediaType.APPLICATION_JSON);
-////        headers.set("Authorization", num+"");
-////        HttpEntity<Integer> request = new HttpEntity<>(num, headers);
-//        var request = RequestEntity
-//                .post(uri)
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(num);
-////        var request = RequestEntity.get(uri).build();
-//
-//
-//        var response = restTemplate.exchange(uri, HttpMethod.POST, request, new ParameterizedTypeReference<Map<String, String>>() {});
-////        ResponseEntity<User> response = restTemplate.exchange(request, User.class);
-//
-//        //        ResponseEntity<Map<String, String>> response = restTemplate.exchange(request,
-////                new ParameterizedTypeReference<Map<String, String>>() {});
-//
-//        return response.getBody();
-//    }
-//
-//
-
-
-//        public User getCurrentUserAsMap() {
-//        Integer num = 1;
-//        URI uri = new URL().currentUser(/*num*/);// http://localhost:8080/login/currentuser
-////        HttpHeaders headers = new HttpHeaders();
-////        headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-////        headers.setContentType(MediaType.APPLICATION_JSON);
-////        headers.set("Authorization", num+"");
-////        HttpEntity<Integer> request = new HttpEntity<>(num, headers);
-//        var request = RequestEntity
-//                .post(uri)
-////                .accept(MediaType.APPLICATION_JSON)
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .body(num);
-////        var request = RequestEntity.get(uri).build();
-//
-//
-//        var response = restTemplate.exchange(uri, HttpMethod.POST, request, User.class);
-////        ResponseEntity<User> response = restTemplate.exchange(request, User.class);
-//
-//        //        ResponseEntity<Map<String, String>> response = restTemplate.exchange(request,
-////                new ParameterizedTypeReference<Map<String, String>>() {});
-//
-//        return response.getBody();
-//    }
-//
-//

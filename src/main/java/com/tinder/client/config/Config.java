@@ -26,23 +26,17 @@ public class Config {
     SendRequestReceiveResponse sendRequestReceiveResponse() {
         return new SendRequestReceiveResponse(showResult(), restTemplate());
     }
+
     @Bean
     RestTemplate restTemplate() {
         return new RestTemplate();
     }
+
     @Bean
     ShowResult showResult() {
         return new ShowResult();
     }
 }
-
-
-
-
-
-
-
-
 
 
 //    @Value("${remote.server.link}")
