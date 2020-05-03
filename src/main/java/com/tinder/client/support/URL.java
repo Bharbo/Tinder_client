@@ -13,7 +13,7 @@ public class URL {
     }
 
     public URI noAuthNext(int num) {
-        return URI.create(StrURL.NEXT.label + "?num=" + num);//users/next?num='num'
+        return URI.create(StrURL.NEXT.label + "?num=" + num);
     }
 
     public URI authNext() {
@@ -23,10 +23,6 @@ public class URL {
     public URI allMyMatch(Long id) {
         return URI.create(StrURL.ALLMATCH.label + id);
     }
-
-//    public URI oneMatch(Long id) {
-//        return URI.create(StrURL.ONEMATCH.label + id);
-//    }
 
     public URI logIn() {
         return URI.create(StrURL.LOGIN.label);
@@ -44,8 +40,8 @@ public class URL {
         return URI.create(StrURL.DELETE.label);
     }
 
-    public URI currentUser(Integer num) {
-        return URI.create(StrURL.CURRENTUSER.label + "?num=" + num);
+    public URI currentUser() {
+        return URI.create(StrURL.CURRENTUSER.label);
     }
 
     public URI breakLoggedUser() {
@@ -55,10 +51,4 @@ public class URL {
     public URI logOut() {
         return URI.create(StrURL.LOGOUT.label);
     }
-
 }
-
-
-//    public URI currentUser(/*int num*/) {
-//        return URI.create(StrURL.CURRENTUSER.label/* + "?num=" + num*/);
-//    }

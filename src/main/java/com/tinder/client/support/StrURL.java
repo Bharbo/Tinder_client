@@ -9,8 +9,8 @@ public enum StrURL {
     REG("http://localhost:8080/register"),
     EDIT("http://localhost:8080/login/edit"),
     DELETE("http://localhost:8080/login/edit/delete"),
-    BREAKLOGGEDUSER("http://localhost:8080/breakuser"),
 
+    BREAKLOGGEDUSER("http://localhost:8080/breakuser"),
     CURRENTUSER("http://localhost:8080/login/currentuser"),
     LOGOUT("http://localhost:8080/logout");
 
@@ -20,27 +20,3 @@ public enum StrURL {
         this.label = label;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//    AUTHNEXT("http://localhost:8080/users/next"),
-//ONEMATCH("http://localhost:8080/users/like/matching/"),
