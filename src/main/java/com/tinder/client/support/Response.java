@@ -8,8 +8,4 @@ import lombok.Getter;
 public class Response {
     boolean status;
     Object addition;
-
-    public Response(boolean status) {
-        this.status = status;
-    }
 }

@@ -16,7 +16,8 @@ public class AuthorizationController {
     StartController startController;
     ShowResult showResult;
 
-    public AuthorizationController(SendRequestReceiveResponse sendRequestReceiveResponse, StatusOfClient statusOfClient, StartController startController, ShowResult showResult) {
+    public AuthorizationController(SendRequestReceiveResponse sendRequestReceiveResponse, StatusOfClient statusOfClient,
+                                   StartController startController, ShowResult showResult) {
         this.sendRequestReceiveResponse = sendRequestReceiveResponse;
         this.statusOfClient = statusOfClient;
         this.startController = startController;
